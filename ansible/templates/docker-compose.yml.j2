@@ -1,0 +1,19 @@
+services:
+  prestashop:
+    image: prestashop/prestashop:8.2.3-8.1-apache
+    container_name: prestashop
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      DB_SERVER: "{{ vault_db_host }}"
+      DB_PORT: "{{ vault_db_port }}"
+      DB_NAME: "{{ vault_db_name }}"
+      DB_USER: "{{ vault_db_user }}"
+      DB_PASSWD: "{{ vault_db_password }}"
+      PS_INSTALL_AUTO: "0"
+    volumes:
+      - prestashop_data:/var/www/html
+
+volumes:
+  prestashop_data:

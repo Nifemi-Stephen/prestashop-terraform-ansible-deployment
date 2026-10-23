@@ -1,0 +1,30 @@
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*secret*
+vault-password*
+.vault_pass
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfvars
+
+# Ansible
+**/inventory.ini
+**/hosts
+*.retry
+
+# Local and generated files
+.DS_Store
+Thumbs.db

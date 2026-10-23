@@ -1,0 +1,106 @@
+---
+- name: Prepare EC2 for PrestaShop deployment
+  hosts: prestashop
+  become: true
+
+  tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - python3-apt
+        state: present
+        update_cache: true
+
+    - name: Create directory for Docker repository key
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download Docker repository signing key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Add official Docker repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable
+        filename: docker
+        state: present
+
+    - name: Install Docker Engine and Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Enable and start Docker
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Create PrestaShop deployment directory
+      ansible.builtin.file:
+        path: /opt/prestashop
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0750"
+
+    - name: Deploy PrestaShop Compose configuration
+      ansible.builtin.template:
+        src: templates/docker-compose.yml.j2
+        dest: /opt/prestashop/docker-compose.yml
+        owner: root
+        group: root
+        mode: "0600"
+      no_log: true
+
+    - name: Validate Docker Compose configuration
+      ansible.builtin.command:
+        cmd: docker compose config --quiet
+        chdir: /opt/prestashop
+      changed_when: false
+
+    - name: Start PrestaShop container
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: /opt/prestashop
+      register: prestashop_start
+      changed_when: >-
+        'Creating' in prestashop_start.stdout or
+        'Started' in prestashop_start.stdout or
+        'Created' in prestashop_start.stdout
+      no_log: true
+
+    - name: Wait for PrestaShop container to start
+      ansible.builtin.command:
+        cmd: docker inspect --format '{{ "{{" }}.State.Running{{ "}}" }}' prestashop
+      register: prestashop_running
+      retries: 10
+      delay: 3
+      until: prestashop_running.stdout == "true"
+      changed_when: false
+
+    - name: Remove PrestaShop installer directory
+      ansible.builtin.command:
+        cmd: docker exec prestashop rm -rf /var/www/html/install
+      register: prestashop_install_removal
+      changed_when: prestashop_install_removal.rc == 0
