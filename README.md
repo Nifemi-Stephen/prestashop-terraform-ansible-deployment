@@ -64,6 +64,13 @@ prestashop-terraform-ansible-deployment/
 └── .gitignore
 ```
 
+### Configure Terraform Variables
+
+Copy the example file and update it with your environment-specific values:
+
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+
 File names may differ if the project has been updated; use the actual repository contents as the source of truth.
 
 ## Deployment Workflow
