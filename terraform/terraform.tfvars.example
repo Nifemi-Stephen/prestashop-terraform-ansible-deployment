@@ -1,0 +1,10 @@
+aws_region        = "YOUR_AWS_REGION"
+project_name      = "YOUR_PROJECT_NAME"
+instance_type     = "YOUR_VM_INSTANCE_TYPE"
+db_instance_class = "YOUR_DB_INSTANCE_CLASS"
+
+db_name     = "YOUR_DATABASE NAME"
+db_username = "YOUR_DATABASE_USERNAME"
+db_password = "YOUR_DATABASE_PASSWORD"
+
+ssh_allowed_cidr = "IP_ADDRESS_ALLOWED_TO_ACCESS_YOUR_VM"
